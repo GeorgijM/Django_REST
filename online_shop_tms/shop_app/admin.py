@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 from django.contrib import admin
-from .models import Category, Discount, ProductItem
+from .models import Category, Discount, ProductItem, Promocode
 
 
 # Register your models here.
@@ -18,6 +18,12 @@ class ProductItemAdmin(admin.ModelAdmin):
     list_select_related = ('category',)
 
 
+class PromocodeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'percent', 'expire')
+    search_fields = ('name',)
+
+
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Discount, DiscountAdmin)
 admin.site.register(ProductItem, ProductItemAdmin)
+admin.site.register(Promocode, PromocodeAdmin)
