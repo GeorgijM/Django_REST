@@ -69,7 +69,7 @@ class UserManager(BaseUserManager):
         user = self.model(
             phone=phone
         )
-        user.set_password(password)
+        user.set_password(password)   #creating password as hash
         user.login = login
         user.age = age
         user.is_admin = is_admin
@@ -112,7 +112,7 @@ class RegistredUser(AbstractUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'phone'
+    USERNAME_FIELD = 'phone'   #переопределили поле с 'name' на 'phone'
 
     @property
     def token(self):
@@ -126,4 +126,4 @@ class RegistredUser(AbstractUser):
             'exp': int(dt.strftime('%s'))
         }, settings.SECRET_KEY, algorithm='HS256')
 
-        return
+        return token
