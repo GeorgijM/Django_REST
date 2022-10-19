@@ -11,7 +11,7 @@ from django.db.models import F
 from .models import Category, Discount, ProductItem, Promocode, RegistredUser, Basket
 from .serializers import CategoriesSerializer, DiscountsSerializer, \
     PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer, \
-    AddProductSerializer, UserBasketSerializer
+    AddProductSerializer, BasketSerializer
 
 
 class CategoriesView(ListAPIView):
@@ -99,6 +99,6 @@ class BasketView(APIView):
             .values("name", "price", number_of_items=F("basket__number_of_items"))
         print(f"Basket: {basket}")
 
-        serializer = UserBasketSerializer(basket, many=True)
+        serializer = BasketSerializer({"products": basket})
 
         return Response(serializer.data, status=200)

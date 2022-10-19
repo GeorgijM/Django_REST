@@ -105,7 +105,19 @@ class AddProductSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
     number_of_items = serializers.IntegerField()
 
-class UserBasketSerializer(serializers.Serializer):
+class ProductInBasketSerializer(serializers.Serializer):
     name = serializers.CharField()
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
     number_of_items = serializers.IntegerField()
+
+class BasketSerializer(serializers.Serializer):
+    products = ProductInBasketSerializer(many=True)
+    result_price = serializers.SerializerMethodField()
+
+    def get_result_price(self, data):
+        result_price =0
+
+        for item in data.get('products'):
+            result_price += item.get('price') * item.get('number_of_items')
+
+        return result_price
