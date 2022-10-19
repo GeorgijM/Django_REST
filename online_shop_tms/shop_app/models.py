@@ -7,7 +7,6 @@ import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 
-
 SEX_CHOICES = (
     ('M', 'Male'),
     ('F', 'Female')
@@ -69,7 +68,7 @@ class UserManager(BaseUserManager):
         user = self.model(
             phone=phone
         )
-        user.set_password(password)   #creating password as hash
+        user.set_password(password)  # creating password as hash
         user.login = login
         user.age = age
         user.is_admin = is_admin
@@ -112,7 +111,7 @@ class RegistredUser(AbstractUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'phone'   #переопределили поле с 'name' на 'phone'
+    USERNAME_FIELD = 'phone'  # переопределили поле с 'name' на 'phone'
 
     @property
     def token(self):
@@ -123,7 +122,13 @@ class RegistredUser(AbstractUser):
 
         token = jwt.encode({
             'id': self.pk,
-            'exp': int(dt.strftime('%s'))
+            'exp': dt.utcfromtimestamp(dt.timestamp())
         }, settings.SECRET_KEY, algorithm='HS256')
 
         return token
+
+
+class Basket(models.Model):
+    user = models.ForeignKey(RegistredUser, on_delete=models.CASCADE)
+    product = models.ForeignKey(ProductItem, on_delete=models.CASCADE)
+    number_of_items = models.IntegerField(blank=True, null=True)

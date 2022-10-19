@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Discount, Promocode, ProductItem, RegistredUser
+from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket
 from django.contrib.auth import authenticate
 
 
@@ -99,3 +99,13 @@ class LoginSerializer(serializers.Serializer):
             'phone': user.phone,
             'token': user.token
         }
+
+
+class AddProductSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    number_of_items = serializers.IntegerField()
+
+class UserBasketSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    number_of_items = serializers.IntegerField()

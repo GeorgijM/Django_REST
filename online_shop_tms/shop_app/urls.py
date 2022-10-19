@@ -1,6 +1,8 @@
 from django.urls import re_path
 from .views import CategoriesView, DiscountsView, PromocodesView, \
-    ProductItemsView, RegistrationAPIView, LoginAPIView
+    ProductItemsView, RegistrationAPIView, LoginAPIView, AddProductIntoUserBasket, \
+    BasketView
+
 
 
 urlpatterns = [
@@ -9,5 +11,7 @@ urlpatterns = [
     re_path(r'^promocodes/', PromocodesView.as_view()),
     re_path(r'^products/', ProductItemsView.as_view()),
     re_path(r'^register/', RegistrationAPIView.as_view()),
-    re_path(r'^login/', LoginAPIView.as_view())
+    re_path(r'^basket/', AddProductIntoUserBasket.as_view()),
+    re_path(r'^login/', LoginAPIView.as_view()),
+    re_path(r'^get-user-basket/', BasketView.as_view())
 ]

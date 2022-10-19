@@ -7,9 +7,11 @@ from rest_framework.generics import ListAPIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import Category, Discount, ProductItem, Promocode, RegistredUser
+from django.db.models import F
+from .models import Category, Discount, ProductItem, Promocode, RegistredUser, Basket
 from .serializers import CategoriesSerializer, DiscountsSerializer, \
-    PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer
+    PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer, \
+    AddProductSerializer, UserBasketSerializer
 
 
 class CategoriesView(ListAPIView):
@@ -28,7 +30,7 @@ class PromocodesView(ListAPIView):
 
 
 class ProductItemsView(ListAPIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     queryset = get_list_or_404(ProductItem)
     serializer_class = ProductItemsSerializer
 
@@ -64,5 +66,39 @@ class LoginAPIView(APIView):
         # нечего сохранять. Вместо этого, метод validate() делает все нужное.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=200)
+
+
+class AddProductIntoUserBasket(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+
+        input_serializer = AddProductSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        product = get_object_or_404(ProductItem, id=input_serializer.data.get("product_id"))
+
+        object, created = Basket.objects.get_or_create(user=request.user, product=product)
+        if object.number_of_items:
+            object.number_of_items += input_serializer.data.get("number_of_items")
+        else:
+            object.number_of_items = input_serializer.data.get("number_of_items")
+        object.save()
+
+        return Response(status=200)
+
+
+class BasketView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        basket = ProductItem.objects.prefetch_related("basket_set").filter(basket__user=user) \
+            .values("name", "price", number_of_items=F("basket__number_of_items"))
+        print(f"Basket: {basket}")
+
+        serializer = UserBasketSerializer(basket, many=True)
 
         return Response(serializer.data, status=200)
