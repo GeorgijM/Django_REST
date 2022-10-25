@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from rest_framework.views import APIView
+from django.db.models import F
 from rest_framework.generics import ListAPIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import F
 from .models import Category, Discount, ProductItem, Promocode, RegistredUser, Basket
 from .serializers import CategoriesSerializer, DiscountsSerializer, \
     PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer, \
-    AddProductSerializer, BasketSerializer
+    AddProductSerializer, BasketSerializer, CreateOrderSerializer
 
 
 class CategoriesView(ListAPIView):
@@ -30,7 +30,7 @@ class PromocodesView(ListAPIView):
 
 
 class ProductItemsView(ListAPIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, )
     queryset = get_list_or_404(ProductItem)
     serializer_class = ProductItemsSerializer
 
@@ -95,10 +95,21 @@ class BasketView(APIView):
 
     def get(self, request):
         user = request.user
-        basket = ProductItem.objects.prefetch_related("basket_set").filter(basket__user=user) \
-            .values("name", "price", number_of_items=F("basket__number_of_items"))
-        print(f"Basket: {basket}")
+        basket = ProductItem.objects.prefetch_related("basket_set").filter(basket__user=user)\
+            .values("name", "price", "discount", number_of_items=F("basket__number_of_items"),
+                    discount_percent=F("discount__percent"), discount_expire=F("discount__expire"))
 
         serializer = BasketSerializer({"products": basket})
+
+        return Response(serializer.data, status=200)
+
+
+class CreateOrderView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request):
+        serializer = CreateOrderSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
 
         return Response(serializer.data, status=200)

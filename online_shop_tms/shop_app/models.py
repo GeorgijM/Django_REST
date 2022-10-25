@@ -7,6 +7,7 @@ import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 
+
 SEX_CHOICES = (
     ('M', 'Male'),
     ('F', 'Female')
@@ -28,6 +29,7 @@ class Discount(models.Model):
     name = models.CharField(max_length=150)
     percent = models.IntegerField()
     allow_to_sum_with_promo = models.BooleanField()
+    expire = models.DateTimeField(default=datetime.now())
 
     def __str__(self):
         return self.name
@@ -68,7 +70,7 @@ class UserManager(BaseUserManager):
         user = self.model(
             phone=phone
         )
-        user.set_password(password)  # creating password as hash
+        user.set_password(password)
         user.login = login
         user.age = age
         user.is_admin = is_admin
@@ -111,7 +113,7 @@ class RegistredUser(AbstractUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'phone'  # переопределили поле с 'name' на 'phone'
+    USERNAME_FIELD = 'phone'
 
     @property
     def token(self):
@@ -122,6 +124,7 @@ class RegistredUser(AbstractUser):
 
         token = jwt.encode({
             'id': self.pk,
+            # 'exp': int(dt.strftime('%s'))
             'exp': dt.utcfromtimestamp(dt.timestamp())
         }, settings.SECRET_KEY, algorithm='HS256')
 
@@ -132,3 +135,35 @@ class Basket(models.Model):
     user = models.ForeignKey(RegistredUser, on_delete=models.CASCADE)
     product = models.ForeignKey(ProductItem, on_delete=models.CASCADE)
     number_of_items = models.IntegerField(blank=True, null=True)
+
+
+class Order(models.Model):
+    DELIVERY_METHODS = (('Courier', 'Courier'),
+                       ('Pickup', 'Pickup'),
+                       ('Post', 'Post'))
+    PAYMENT_METHODS = (('Cash', 'Cash'),
+                       ('Card', 'Card'))
+
+    PAYMENT_STATUSES = (('Paid', 'Paid'),
+                        ('Waiting', 'Waiting'))
+
+    DELIVERY_STATUSES = (('Delivered', 'Delivered'),
+                         ('In process', 'In process'))
+
+    NOTIF_TIME = ((1, 1), (6, 6), (24, 24))
+
+    user = models.ForeignKey(RegistredUser, on_delete=models.CASCADE)
+    order_date = models.DateTimeField()
+    comment = models.TextField()
+    result_price = models.DecimalField(max_digits=10, decimal_places=2)
+    result_number_of_items = models.IntegerField()
+    product_items = models.JSONField()
+    delivery_address = models.CharField(max_length=500)
+    delivery_date = models.DateTimeField(null=True, blank=True)
+    delivery_method = models.CharField(max_length=10, choices=DELIVERY_METHODS)
+    delivery_status = models.CharField(max_length=10, choices=DELIVERY_STATUSES)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHODS)
+    payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUSES)
+    delivery_notif_required = models.BooleanField(default=True)
+    delivery_notif_in_time = models.IntegerField(choices=NOTIF_TIME, default=1)
+    delivery_notif_sent = models.BooleanField(default=False)
