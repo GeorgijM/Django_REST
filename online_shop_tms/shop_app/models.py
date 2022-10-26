@@ -175,3 +175,4 @@ class Cashback(models.Model):
     percent = models.IntegerField()
     allowed_ammount_to_substract = models.IntegerField()
 
+
