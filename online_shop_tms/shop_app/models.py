@@ -7,7 +7,6 @@ import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 
-
 SEX_CHOICES = (
     ('M', 'Male'),
     ('F', 'Female')
@@ -58,9 +57,9 @@ class Promocode(models.Model):
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, password, phone=None,
+    def create_user(self, password, email, phone=None,
                     is_admin=False, is_staff=False,
-                    is_active=True, age=18, login='', weekly_discount_notif_required=True):
+                    is_active=False, age=18, login='', weekly_discount_notif_required=True):
 
         if not phone:
             raise ValueError("User must have phone")
@@ -72,6 +71,7 @@ class UserManager(BaseUserManager):
         )
         user.set_password(password)
         user.login = login
+        user.email = email
         user.age = age
         user.is_admin = is_admin
         user.is_staff = is_staff
@@ -91,6 +91,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(password, phone, is_admin=True, is_staff=True, is_active=True)
         user.is_superuser = True
         user.is_staff = True
+        user.is_active = True
         user.save()
         return user
 
@@ -100,6 +101,7 @@ class RegistredUser(AbstractUser):
     age = models.IntegerField()
     sex = models.CharField(choices=SEX_CHOICES, max_length=20, default='M')
     phone = models.CharField(max_length=20, unique=True)
+    email = models.EmailField(default=None)
     login = models.CharField(max_length=100, default='')
     weekly_discount_notif_required = models.BooleanField(default=True)
     cashback_points = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
@@ -139,8 +141,8 @@ class Basket(models.Model):
 
 class Order(models.Model):
     DELIVERY_METHODS = (('Courier', 'Courier'),
-                       ('Pickup', 'Pickup'),
-                       ('Post', 'Post'))
+                        ('Pickup', 'Pickup'),
+                        ('Post', 'Post'))
     PAYMENT_METHODS = (('Cash', 'Cash'),
                        ('Card', 'Card'))
 

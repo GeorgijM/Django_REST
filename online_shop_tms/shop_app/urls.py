@@ -1,10 +1,7 @@
-from django.urls import re_path
-from .views import CategoriesView, DiscountsView,  PromocodesView, \
+from django.urls import re_path, path
+from .views import CategoriesView, DiscountsView, PromocodesView, \
     ProductItemsView, RegistrationAPIView, LoginAPIView, AddProductIntoUserBasket, \
-    BasketView, CreateOrderView
-
-
-
+    BasketView, CreateOrderView, ActivateAccountView
 
 urlpatterns = [
     re_path(r'^categories/', CategoriesView.as_view()),
@@ -15,5 +12,6 @@ urlpatterns = [
     re_path(r'^login/', LoginAPIView.as_view()),
     re_path(r'^add-product/', AddProductIntoUserBasket.as_view()),
     re_path(r'^get-user-basket/', BasketView.as_view()),
-    re_path(r'^create-order/', CreateOrderView.as_view())
+    re_path(r'^create-order/', CreateOrderView.as_view()),
+    path('activate/<slug:uidb64>/<slug:token>/', ActivateAccountView.as_view(), name='activate')
 ]
