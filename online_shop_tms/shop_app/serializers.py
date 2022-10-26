@@ -178,7 +178,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
         user = self.context.get('request').user
         cashback = Cashback.objects.all().first()
-        user.cashback_points += result_price * (100 - cashback.percent) / 100
+        user.cashback_points += result_price * cashback.percent / 100
         user.save()
         return result_price
 
