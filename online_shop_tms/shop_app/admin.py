@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
-from .models import Category, Discount, ProductItem, Promocode, Basket, Order
+from .models import Category, Discount, ProductItem, Promocode, Basket, Order, Cashback, RegistredUser
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -34,9 +34,18 @@ class OrderInfoAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Order._meta.get_fields()]
 
 
+class RegistredUserAdmin(admin.ModelAdmin):
+    list_display = ['phone', 'cashback_points', 'login', 'email']
+    search_fields = ('phone', 'email')
+
+class CashbackAdmin(admin.ModelAdmin):
+    list_display = ['percent', 'allowed_ammount_to_substract']
+
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Discount, DiscountAdmin)
 admin.site.register(ProductItem, ProductItemAdmin)
 admin.site.register(Promocode, PromocodeAdmin)
 admin.site.register(Basket, BasketAdmin)
 admin.site.register(Order, OrderInfoAdmin)
+admin.site.register(Cashback, CashbackAdmin)
+admin.site.register(RegistredUser, RegistredUserAdmin)

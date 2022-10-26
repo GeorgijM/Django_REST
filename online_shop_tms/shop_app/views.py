@@ -16,7 +16,7 @@ from django.template.loader import render_to_string
 from .models import Category, Discount, ProductItem, Promocode, RegistredUser, Basket
 from .serializers import CategoriesSerializer, DiscountsSerializer, \
     PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer, \
-    AddProductSerializer, BasketSerializer, CreateOrderSerializer
+    AddProductSerializer, BasketSerializer, CreateOrderSerializer, DeleteProductSerializer
 from django.utils.encoding import force_bytes, force_str
 from .tokens import account_activation_token
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -148,3 +148,17 @@ class ActivateAccountView(APIView):
             return Response('Thank you for your email confirmation. Now you can login your account.', status=200)
         else:
             return Response('Activation link is invalid!', status=403)
+
+
+class DeleteProductFromUserBasket(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def delete(self, request):
+        user = request.user
+        serializer = DeleteProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        product_item = get_object_or_404(ProductItem, id=serializer.data.get('product_item_id'))
+        Basket.objects.get(user=user, product=product_item).delete()
+
+        return Response(status=200)

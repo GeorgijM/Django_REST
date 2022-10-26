@@ -169,3 +169,9 @@ class Order(models.Model):
     delivery_notif_required = models.BooleanField(default=True)
     delivery_notif_in_time = models.IntegerField(choices=NOTIF_TIME, default=1)
     delivery_notif_sent = models.BooleanField(default=False)
+
+
+class Cashback(models.Model):
+    percent = models.IntegerField()
+    allowed_ammount_to_substract = models.IntegerField()
+

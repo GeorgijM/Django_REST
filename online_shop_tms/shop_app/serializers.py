@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket, Order
+from .models import Category, Discount, Promocode, ProductItem, RegistredUser, Basket, Order, Cashback
 from django.contrib.auth import authenticate
 import datetime
 
@@ -167,7 +167,8 @@ class CreateOrderSerializer(serializers.ModelSerializer):
                 delta = date_expire - datetime.datetime.now(datetime.timezone.utc)
                 if delta.days >= 0 and delta.seconds >= 0:
                     if item.get('discount__allow_to_sum_with_promo') and promocode:
-                        result_price += (((price * (100 - discount) / 100) * (100 - promocode.percent) / 100) * number_of_items)
+                        result_price += (((price * (100 - discount) / 100) * (
+                                    100 - promocode.percent) / 100) * number_of_items)
                     else:
                         result_price += (price * (100 - discount) / 100) * number_of_items
                 else:
@@ -175,6 +176,10 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             else:
                 result_price += price * number_of_items
 
+        user = self.context.get('request').user
+        cashback = Cashback.objects.all().first()
+        user.cashback_points += result_price * (100 - cashback.percent) / 100
+        user.save()
         return result_price
 
     def get_result_number_of_items(self, data):
@@ -192,3 +197,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             validated_data.pop('promocode')
 
         return Order.objects.create(**validated_data)
+
+
+class DeleteProductSerializer(serializers.Serializer):
+    product_item_id = serializers.IntegerField()
