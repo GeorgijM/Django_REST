@@ -20,6 +20,7 @@ from .serializers import CategoriesSerializer, DiscountsSerializer, \
 from django.utils.encoding import force_bytes, force_str
 from .tokens import account_activation_token
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from drf_yasg.utils import swagger_auto_schema
 
 
 class CategoriesView(ListAPIView):
@@ -38,7 +39,7 @@ class PromocodesView(ListAPIView):
 
 
 class ProductItemsView(ListAPIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
     queryset = get_list_or_404(ProductItem)
     serializer_class = ProductItemsSerializer
 
@@ -50,6 +51,13 @@ class RegistrationAPIView(APIView):
     permission_classes = (AllowAny,)
     serializer_class = RegistrationSerializer
 
+    @swagger_auto_schema(
+        request_body=LoginSerializer,
+        request_method='POST',
+        responses={
+            200: LoginSerializer
+        }
+    )
     def post(self, request):
         user = request.data.get('user', {})
 
@@ -115,7 +123,7 @@ class BasketView(APIView):
 
     def get(self, request):
         user = request.user
-        basket = ProductItem.objects.prefetch_related("basket_set").filter(basket__user=user)\
+        basket = ProductItem.objects.prefetch_related("basket_set").filter(basket__user=user) \
             .values("name", "price", "discount", number_of_items=F("basket__number_of_items"),
                     discount_percent=F("discount__percent"), discount_expire=F("discount__expire"))
 
@@ -125,7 +133,7 @@ class BasketView(APIView):
 
 
 class CreateOrderView(APIView):
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         serializer = CreateOrderSerializer(data=request.data, context={'request': request})
@@ -133,6 +141,7 @@ class CreateOrderView(APIView):
         order = serializer.save()
 
         return Response(serializer.data, status=200)
+
 
 class ActivateAccountView(APIView):
 
