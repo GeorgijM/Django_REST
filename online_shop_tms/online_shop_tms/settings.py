@@ -157,3 +157,12 @@ MEDIA_URL = 'media/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Celery settings
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+CELERY_IMPORTS = ["shop_app.tasks"]
+
+
+#cmd for running celery:
+# 'python -m celery -A online_shop_tms worker -l info'

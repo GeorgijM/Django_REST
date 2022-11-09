@@ -18,6 +18,8 @@ from .serializers import CategoriesSerializer, DiscountsSerializer, \
     PromocodesSerializer, ProductItemsSerializer, UserSerializer, LoginSerializer, RegistrationSerializer, \
     AddProductSerializer, BasketSerializer, CreateOrderSerializer, DeleteProductSerializer
 from django.utils.encoding import force_bytes, force_str
+
+from .tasks import send_email_confirmation
 from .tokens import account_activation_token
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from drf_yasg.utils import swagger_auto_schema
@@ -67,17 +69,20 @@ class RegistrationAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         current_site = get_current_site(request)
-        mail_subject = 'Activation link has been sent to your email id'
-        message = render_to_string('account_activation_email.html', {
-            'user': user,
-            'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': account_activation_token.make_token(user),
-        })
-        to_email = user.email
-        send_mail(
-            mail_subject, message, recipient_list=[to_email], from_email=settings.DEFAULT_FROM_EMAIL
-        )
+        send_email_confirmation.delay(user.id, current_site.domain)
+        # moved into 'tasks.py' for celery
+
+        # mail_subject = 'Activation link has been sent to your email id'
+        # message = render_to_string('account_activation_email.html', {
+        #     'user': user,
+        #     'domain': current_site.domain,
+        #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        #     'token': account_activation_token.make_token(user),
+        # })
+        # to_email = user.email
+        # send_mail(
+        #     mail_subject, message, recipient_list=[to_email], from_email=settings.DEFAULT_FROM_EMAIL
+        # )
 
         return Response(serializer.data, status=200)
 
